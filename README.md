@@ -1,3 +1,22 @@
+Custom Fog Version of URP.
+The custom fog has some nice atmospheric scatterings.
+
+There are different branches based on which URP-version/Unit editor version used.
+
+Point your package manager to use these packages : 
+
+https://github.com/agensdev/Graphics.git?path=/com.unity.render-pipelines.universal#CustomFogURP_13_1_7_Unity_2022.1.0b11
+
+https://github.com/agensdev/Graphics.git?path=/com.unity.render-pipelines.core#CustomFogURP_13_1_7_Unity_2022.1.0b11
+
+https://github.com/agensdev/Graphics.git?path=/com.unity.shadergraph.#CustomFogURP_13_1_7_Unity_2022.1.0b11
+
+Then import the CustomFogURP package into your project.
+You will need to put the GlobalEnvironment prefab into your scene, found in CustomFogURP/Environments
+You probably also want to go to lighting settings environment and choose the CustomFogURP skybox.
+The GlobalEnvironment prefab has its own light, so you might need to turn off your own light, same for
+postprocessing - that is also animated by the GlobalEnvironment.
+
 ## NOTE: We have migrated reported issues to FogBugz. You can only log further issues via the Unity bug tracker. To see how, read [this](https://unity3d.com/unity/qa/bug-reporting).
 
 ## NOTE 2: We are rolling out changes to how we develop the Graphics Packages. Development will move to an internal repo and changes will be mirrored to this public repo. You will continue to see changes at the PR level and pull in changes from this public repo. You can find more information and track our progress [here](https://forum.unity.com/threads/important-upcoming-changes-to-the-graphics-repository.1239826/).
