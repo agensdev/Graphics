@@ -2,6 +2,7 @@
 #define UNIVERSAL_SIMPLE_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
 
 struct Attributes
 {
@@ -179,7 +180,8 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
 #endif
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;

@@ -2,6 +2,7 @@
 #define UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
 
 // GLES2 has limited amount of interpolators
 #if defined(_PARALLAXMAP) && !defined(SHADER_API_GLES)
@@ -220,8 +221,8 @@ half4 LitPassFragment(Varyings input) : SV_Target
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
-
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;

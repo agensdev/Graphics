@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
 
 struct Attributes
 {
@@ -213,16 +214,18 @@ void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
 }
 #endif
 
-void SplatmapFinalColor(inout half4 color, half fogCoord)
+void SplatmapFinalColor(inout half4 color,InputData inputData)
 {
     color.rgb *= color.a;
 
     #ifndef TERRAIN_GBUFFER // Technically we don't need fogCoord, but it is still passed from the vertex shader.
 
     #ifdef TERRAIN_SPLAT_ADDPASS
-        color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
+        //color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
+        color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
     #else
-        color.rgb = MixFog(color.rgb, fogCoord);
+        //color.rgb = MixFog(color.rgb, fogCoord);
+        color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
     #endif
 
     #endif
@@ -400,7 +403,8 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
     color.a = alpha;
-    SplatmapFinalColor(color, inputData.fogCoord);
+
+    SplatmapFinalColor(color, inputData);
 
     // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
     // as forward renderer because we apply blending pre-lighting instead of post-lighting.
@@ -418,7 +422,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
-    SplatmapFinalColor(color, inputData.fogCoord);
+    SplatmapFinalColor(color, inputData);
 
     return half4(color.rgb, 1.0h);
 #endif
