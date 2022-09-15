@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
 
 struct GrassVertexInput
 {
@@ -211,7 +212,9 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 #else
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
     return half4(color.rgb, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent(_Surface)));
 #endif
 };

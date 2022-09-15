@@ -1,3 +1,4 @@
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
 
 void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
@@ -136,7 +137,9 @@ void frag(
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surface);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
 
     color.a = OutputAlpha(color.a, isTransparent);
 
