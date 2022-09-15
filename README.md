@@ -9,7 +9,7 @@ https://github.com/agensdev/Graphics.git?path=/com.unity.render-pipelines.univer
 
 https://github.com/agensdev/Graphics.git?path=/com.unity.render-pipelines.core#CustomFogURP_13_1_7_Unity_2022.1.0b11
 
-https://github.com/agensdev/Graphics.git?path=/com.unity.shadergraph.#CustomFogURP_13_1_7_Unity_2022.1.0b11
+https://github.com/agensdev/Graphics.git?path=/com.unity.shadergraph#CustomFogURP_13_1_7_Unity_2022.1.0b11
 
 Then import the CustomFogURP package into your project.
 You will need to put the GlobalEnvironment prefab into your scene, found in CustomFogURP/Environments
