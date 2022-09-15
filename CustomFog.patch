@@ -1,0 +1,137 @@
+diff --git a/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl b/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl
+index c64f08bc7c..685afa5333 100644
+--- a/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl
++++ b/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl
+@@ -1,3 +1,4 @@
++#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
+ 
+ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
+ {
+@@ -122,6 +123,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
+ 
+     half4 color = UniversalFragmentPBR(inputData, surface);
+ 
+-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
+     return color;
+ }
+diff --git a/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl b/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl
+index b018d7a0a4..1b066bb967 100644
+--- a/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl
++++ b/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl
+@@ -2,6 +2,7 @@
+ #define UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
+ 
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
++#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
+ 
+ // GLES2 has limited amount of interpolators
+ #if defined(_PARALLAXMAP) && !defined(SHADER_API_GLES)
+@@ -220,7 +221,8 @@ half4 LitPassFragment(Varyings input) : SV_Target
+ #endif
+ 
+     half4 color = UniversalFragmentPBR(inputData, surfaceData);
+-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
+     color.a = OutputAlpha(color.a, _Surface);
+ 
+     return color;
+diff --git a/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl b/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl
+index da790486e4..5022b5e051 100644
+--- a/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl
++++ b/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl
+@@ -2,6 +2,7 @@
+ #define UNIVERSAL_SIMPLE_LIT_PASS_INCLUDED
+ 
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
++#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
+ 
+ struct Attributes
+ {
+@@ -179,7 +180,8 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
+ #endif
+ 
+     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
+-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
+     color.a = OutputAlpha(color.a, _Surface);
+ 
+     return color;
+diff --git a/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl b/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl
+index 890fcf65cf..ca0d78caaa 100644
+--- a/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl
++++ b/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl
+@@ -5,6 +5,7 @@
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
++#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
+ 
+ struct Attributes
+ {
+@@ -213,16 +214,18 @@ void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
+ }
+ #endif
+ 
+-void SplatmapFinalColor(inout half4 color, half fogCoord)
++void SplatmapFinalColor(inout half4 color,InputData inputData)
+ {
+     color.rgb *= color.a;
+ 
+     #ifndef TERRAIN_GBUFFER // Technically we don't need fogCoord, but it is still passed from the vertex shader.
+ 
+     #ifdef TERRAIN_SPLAT_ADDPASS
+-        color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
++        //color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
++        color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
+     #else
+-        color.rgb = MixFog(color.rgb, fogCoord);
++        //color.rgb = MixFog(color.rgb, fogCoord);
++        color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
+     #endif
+ 
+     #endif
+@@ -400,7 +403,8 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
+     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
+     color.a = alpha;
+-    SplatmapFinalColor(color, inputData.fogCoord);
++
++    SplatmapFinalColor(color, inputData);
+ 
+     // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
+     // as forward renderer because we apply blending pre-lighting instead of post-lighting.
+@@ -418,7 +422,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
+ 
+     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
+ 
+-    SplatmapFinalColor(color, inputData.fogCoord);
++    SplatmapFinalColor(color, inputData);
+ 
+     return half4(color.rgb, 1.0h);
+ #endif
+diff --git a/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassPasses.hlsl b/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassPasses.hlsl
+index 196fcc0813..3fc54b7e20 100644
+--- a/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassPasses.hlsl
++++ b/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassPasses.hlsl
+@@ -4,6 +4,7 @@
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+ #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
++#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
+ 
+ struct GrassVertexInput
+ {
+@@ -216,7 +217,8 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
+     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+ #else
+     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
+-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
++    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
+     return half4(color.rgb, 1);
+ #endif
+ };
