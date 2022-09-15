@@ -6,6 +6,8 @@
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomFog.cginc"
+
 struct Attributes
 {
     float4 positionOS    : POSITION;
@@ -192,7 +194,9 @@ void LitPassFragmentSimple(
 #endif
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.rgb = CustomFog(color.rgb, inputData.fogCoord,inputData.positionWS);
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent(_Surface));
 
     outColor = color;
